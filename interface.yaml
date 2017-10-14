@@ -1,0 +1,5 @@
+name: slurm-cluster
+summary: Slurm cluster interface
+version: 1
+maintainer:
+  - Sandor Zeestraten <sandor.zeestraten@ntnu.no>
