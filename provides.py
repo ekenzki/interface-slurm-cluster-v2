@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+from yaml import safe_load
+
 from charmhelpers.core.hookenv import atexit
 from charmhelpers.core.hookenv import relation_get
 from charmhelpers.core.hookenv import related_units
@@ -40,7 +42,7 @@ class SlurmProvides(RelationBase):
     def get_nodes(self):
         """Return a list of dictionaries with info for each node."""
         return self._get_remote_all(
-            keys=['hostname', 'private-address', 'partition'])
+            keys=['hostname', 'private-address', 'partition', 'default'])
 
     def get_partitions(self):
         """Return the partitions and their nodes as a dictionary.
@@ -53,16 +55,24 @@ class SlurmProvides(RelationBase):
 
             >>> print(get_partitions())
             {
-                'partition1': ['node1', 'node2', 'node3'],
-                'partition2': ['node4']
+                'partition1': {
+                    'hosts': ['node1', 'node2', 'node3'],
+                    'default': True,
+                },
+                'partition2': {
+                    'hosts': ['node4'],
+                    'default': False,
+                }
             }
 
         """
-        # Use defaultdict(list) so we can append items to the the values
-        partitions_dict = defaultdict(list)
+        # This could probably be done in a better way
+        part_dict = defaultdict(dict)
         for node in self.get_nodes():
-            partitions_dict[node['partition']].append(node['hostname'])
-        return dict(partitions_dict)
+            part_dict[node['partition']].setdefault('hosts', [])
+            part_dict[node['partition']]['hosts'].append(node['hostname'])
+            part_dict[node['partition']]['default'] = node['default']
+        return dict(part_dict)
 
     def _get_remote_all(self, keys):
         """Return a list of dictionaries of values presented by remote units.
@@ -86,7 +96,12 @@ class SlurmProvides(RelationBase):
                 for unit in related_units(relation_id):
                     remote_dict = {}
                     for key in keys:
-                        remote_dict[key] = relation_get(key, unit, relation_id)
+                        # Values from relation_get are strings, but we want
+                        # proper Python values so use safe_load.
+                        # If relation_get returns None, yaml.safe_load will
+                        # crash so pass 'None' instead.
+                        value = relation_get(key, unit, relation_id) or 'None'
+                        remote_dict[key] = safe_load(value)
                     values.append(dict_keys_without_hyphens(remote_dict))
         return values
 

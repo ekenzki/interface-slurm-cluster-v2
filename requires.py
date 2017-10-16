@@ -29,10 +29,11 @@ class SlurmRequires(RelationBase):
         self.remove_state('{relation_name}.connected')
         self.remove_state('{relation_name}.changed')
 
-    def send_node_info(self, hostname, partition):
+    def send_node_info(self, hostname, partition, default):
         self.set_remote(data={
             'hostname': hostname,
             'partition': partition,
+            'default': default,
         })
 
     def get_config(self):
