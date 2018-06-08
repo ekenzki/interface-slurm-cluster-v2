@@ -1,5 +1,5 @@
-name: slurm-cluster
-summary: Interface for Slurm
+name: slurm-cluster-v2
+summary: v2 interface for slurm controller
 maintainer:
-  - Sandor Zeestraten <sandor.zeestraten@ntnu.no>
-version: 1
+  - OmniVector <omnivector@omnivector.solutions>
+version: 2
