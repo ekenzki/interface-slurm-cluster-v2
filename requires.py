@@ -32,7 +32,8 @@ class SlurmRequires(reactive.Endpoint):
         '''Returns True if we find this node in the controller config.
         '''
         if config:
-            log('Determining readiness by config: {}'.format(config))
+            log('Determining readiness by nodes from config: {}'.format(
+                config.get('nodes')))
             for node in config.get('nodes'):
                 if node['ingress_address'] == self.ingress_address:
                     log('The controller is ready')
@@ -43,19 +44,19 @@ class SlurmRequires(reactive.Endpoint):
 
     @reactive.when('endpoint.{endpoint_name}.changed')
     def controllers_changed(self):
-        """Assess active-backup controllers and set the appropriate
-        flags based on the result. Relation data for both controllers
-        is relevant as address and hostname information is taken for
-        a backup controller as well. Changed active and backup
-        .changed events are processed in properties - layers need to
-        handle active and backup config changed events in a single
-        handler"""
+        """Assess related controllers and only take relation data from the
+        active one"""
         self._active_data = self._controller_config()
 
         if self._controller_config_ready(self._active_data):
             flags.set_flag(self.expand_name(
                 'endpoint.{endpoint_name}.active.available'))
             flags.set_flag(self.expand_name(
+                'endpoint.{endpoint_name}.active.changed'))
+        else:
+            flags.clear_flag(self.expand_name(
+                'endpoint.{endpoint_name}.active.available'))
+            flags.clear_flag(self.expand_name(
                 'endpoint.{endpoint_name}.active.changed'))
             # TODO: JSON is not serializable => need to either remove
             # this and execute more or solve the problem
