@@ -8,6 +8,7 @@ from charmhelpers.core.hookenv import (
     log,
 )
 
+
 class SlurmProvides(reactive.Endpoint):
     def send_controller_config(self, config):
         # have to handle every relation as there may be many different compute
@@ -26,7 +27,7 @@ class SlurmProvides(reactive.Endpoint):
     def get_node_data(self):
         """Return a list of dictionaries with info for each node"""
         return self._get_all_nodes(keys=set(['ingress-address', 'hostname',
-                                         'partition', 'default']))
+                                             'partition', 'default']))
 
     def _get_all_nodes(self, keys):
         """Return a list of dictionaries of values presented by remote units.
